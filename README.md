@@ -23,6 +23,7 @@ This project provides a data-driven approach to estimate optimal keyboard temper
   - wtc_optimal: Temperament found by our method.
   - wtc_optimal_bounded_fifths: Temperament found by our method, with all fifhts bounded between 696 and 705 cents.
   - wtc_optimal_just_targets: Temperament found by our method, with only the 5-limit just intervals as acceptable targets.
+  
   To listen to these audio files, please visit [https://pvankranenburg.github.io/ismir2025/](https://pvankranenburg.github.io/ismir2025/).
 - **results/**: plots and json output from runs.
 
