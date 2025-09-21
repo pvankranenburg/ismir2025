@@ -6,7 +6,7 @@ This repository contains supplemental material for the paper:
 
 ## Overview
 
-This project provides a data-driven approach to estimate optimal keyboard temperaments from symbolic music data, focusing on minimizing deviations from pure intervals. The method is applied to Johann Sebastian Bach's *Well-Tempered Clavier* (WTC) as a case study. The repository includes Python code, data, and a web application to explore the results.
+This project provides a data-driven approach to estimate optimal keyboard temperaments from symbolic music data, focusing on minimizing deviations from pure intervals. The method is applied to Johann Sebastian Bach's *Well-Tempered Clavier* (WTC) as a case study. The repository includes Python code, data, and a web page to explore the results.
 
 ## Repository Contents
 
