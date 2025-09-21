@@ -15,7 +15,7 @@ This project provides a data-driven approach to estimate optimal keyboard temper
   - temperament_major.ipynb: notebook with the code for the C-major corpus
   - temperament_uniform.ipynb: notebook with the code for the uniformely distributed corpus.
   - temperament_wtc.ipynb: notebook with the code for Bach's Wohltemperierte Clavier.
-- **wtc-examples/**: Synthesized midi files for the entire Wohltemperierte Clavier, including:
+- **wtc-examples/**: Synthesized midi files for the entire Wohltemperierte Clavier under several temperaments:
   - wtc_equal: Equal temperament.
   - wtc_meantone: 1/4 comma meantone temperament.
   - wtc_kelletat1: Herbert Kelletat's Bach temperament.
@@ -23,7 +23,8 @@ This project provides a data-driven approach to estimate optimal keyboard temper
   - wtc_optimal: Temperament found by our method.
   - wtc_optimal_bounded_fifths: Temperament found by our method, with all fifhts bounded between 696 and 705 cents.
   - wtc_optimal_just_targets: Temperament found by our method, with only the 5-limit just intervals as acceptable targets.
-- **results/**: plots and json files containing the output of our method.
+  To listen to these audio files, please visit [https://pvankranenburg.github.io/ismir2025/](https://pvankranenburg.github.io/ismir2025/).
+- **results/**: plots and json output from runs.
 
 ## Citation
 
