@@ -17,32 +17,35 @@
     .controls { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; margin:1rem 0; }
     input[type="search"]{ padding:.55rem .7rem; border:1px solid var(--border); border-radius:.6rem; min-width:260px; }
     .accordion { display:flex; flex-direction:column; gap:.5rem; }
+
     details {
       border:1px solid var(--border); border-radius:.75rem; background:#fafbfe;
-      padding:.2rem .6rem .6rem; transition:background .2s ease;
+      padding:.15rem .5rem .55rem; transition:background .2s ease;
     }
     details[open] { background:#f4f7ff; }
     summary {
-      cursor:pointer; list-style: none; display:flex; align-items:center; gap:.6rem;
-      padding:.6rem .2rem; font-weight:700; color:#1d2840;
+      cursor:pointer; list-style: none; display:flex; align-items:center; gap:.55rem;
+      padding:.5rem .1rem; font-weight:700; color:#1d2840;
     }
     summary::-webkit-details-marker { display:none; }
-    .chev { display:inline-block; transition: transform .2s ease; }
+    .chev { display:inline-block; transform: rotate(0deg); transition: transform .2s ease; }
     details[open] .chev { transform: rotate(90deg); }
     .badge {
       margin-left:auto; background:#eef4ff; color:#173466; border-radius:999px;
       padding:.15rem .5rem; font-size:.75rem; font-weight:600;
     }
-    .content { padding:.25rem .2rem .2rem .2rem; }
+
+    .content { padding:.15rem .1rem 0; }
+    /* Tighter, left-aligned grid: label fits its text; player hugs the caption */
     .templist{
       display:grid;
-      grid-template-columns: 1fr minmax(220px, 520px);
-      gap:.55rem .8rem;
+      grid-template-columns: max-content minmax(220px, 560px);
+      gap:.45rem .6rem;  /* smaller horizontal gap */
       align-items:center;
     }
     .tlabel{ font-weight:600; color:#1d2840; }
     .cell{ display:flex; flex-direction:column; gap:.3rem; align-items:flex-start; }
-    audio{ width:100%; max-width:520px; }
+    audio{ width:100%; max-width:560px; }
     .meta{ color:var(--muted); font-size:.85rem; }
     .dash{ color:#c0c7d6; }
     .loading{
@@ -51,6 +54,7 @@
       vertical-align:-2px; margin-right:.35rem;
     }
     @keyframes spin { to{ transform:rotate(360deg); } }
+
     @media (prefers-color-scheme: dark){
       :root{ --fg:#e9eefc; --bg:#0b0f1a; --border:#1a2336; --muted:#9fb0d0; }
       details{ background:#0f1626; }
@@ -68,7 +72,7 @@
   </header>
 
   <div class="controls">
-    <input id="search" type="search" placeholder="Filter (e.g., 'Book I', 'BWV 0872')" />
+    <input id="search" type="search" placeholder="Filter (e.g., 'Book I', 'BWV 0872', 'B minor')" />
   </div>
 
   <div id="list" class="accordion" aria-live="polite"></div>
@@ -77,7 +81,7 @@
     // ===== PATH ROOT (index.html at repo root) =====
     const ROOT = "wtc-examples";
 
-    // Temperaments (edit labels or order as you like)
+    // Temperaments (edit labels/order as you like)
     const TEMPERAMENTS = [
       { key: "wtc_equal",                      label: "Equal" },
       { key: "wtc_meantone",                   label: "1/4-comma Meantone" },
@@ -88,16 +92,76 @@
       { key: "wtc_optimal_just_targets",       label: "Optimal (just targets)" }
     ];
 
-    // Build BWV list: 0846..0893 (Book I: 846–869; Book II: 870–893)
+    // Keys from Wikipedia’s content list (Book I & II). BWV_0853 uses split keys.
+    // Source: en.wikipedia.org/wiki/The_Well-Tempered_Clavier (Content sections)  [see paper trail]
+    const KEY_MAP = {
+      // Book I (BWV 846–869)
+      "BWV_0846": "Prelude & Fugue in C major",
+      "BWV_0847": "Prelude & Fugue in C minor",
+      "BWV_0848": "Prelude & Fugue in C♯ major",
+      "BWV_0849": "Prelude & Fugue in C♯ minor",
+      "BWV_0850": "Prelude & Fugue in D major",
+      "BWV_0851": "Prelude & Fugue in D minor",
+      "BWV_0852": "Prelude & Fugue in E♭ major",
+      "BWV_0853": "Prelude in E♭ minor & Fugue in D♯ minor",
+      "BWV_0854": "Prelude & Fugue in E major",
+      "BWV_0855": "Prelude & Fugue in E minor",
+      "BWV_0856": "Prelude & Fugue in F major",
+      "BWV_0857": "Prelude & Fugue in F minor",
+      "BWV_0858": "Prelude & Fugue in F♯ major",
+      "BWV_0859": "Prelude & Fugue in F♯ minor",
+      "BWV_0860": "Prelude & Fugue in G major",
+      "BWV_0861": "Prelude & Fugue in G minor",
+      "BWV_0862": "Prelude & Fugue in A♭ major",
+      "BWV_0863": "Prelude & Fugue in G♯ minor",
+      "BWV_0864": "Prelude & Fugue in A major",
+      "BWV_0865": "Prelude & Fugue in A minor",
+      "BWV_0866": "Prelude & Fugue in B♭ major",
+      "BWV_0867": "Prelude & Fugue in B♭ minor",
+      "BWV_0868": "Prelude & Fugue in B major",
+      "BWV_0869": "Prelude & Fugue in B minor",
+      // Book II (BWV 870–893)
+      "BWV_0870": "Prelude & Fugue in C major",
+      "BWV_0871": "Prelude & Fugue in C minor",
+      "BWV_0872": "Prelude & Fugue in C♯ major",
+      "BWV_0873": "Prelude & Fugue in C♯ minor",
+      "BWV_0874": "Prelude & Fugue in D major",
+      "BWV_0875": "Prelude & Fugue in D minor",
+      "BWV_0876": "Prelude & Fugue in E♭ major",
+      "BWV_0877": "Prelude & Fugue in D♯ minor",
+      "BWV_0878": "Prelude & Fugue in E major",
+      "BWV_0879": "Prelude & Fugue in E minor",
+      "BWV_0880": "Prelude & Fugue in F major",
+      "BWV_0881": "Prelude & Fugue in F minor",
+      "BWV_0882": "Prelude & Fugue in F♯ major",
+      "BWV_0883": "Prelude & Fugue in F♯ minor",
+      "BWV_0884": "Prelude & Fugue in G major",
+      "BWV_0885": "Prelude & Fugue in G minor",
+      "BWV_0886": "Prelude & Fugue in A♭ major",
+      "BWV_0887": "Prelude & Fugue in G♯ minor",
+      "BWV_0888": "Prelude & Fugue in A major",
+      "BWV_0889": "Prelude & Fugue in A minor",
+      "BWV_0890": "Prelude & Fugue in B♭ major",
+      "BWV_0891": "Prelude & Fugue in B♭ minor",
+      "BWV_0892": "Prelude & Fugue in B major",
+      "BWV_0893": "Prelude & Fugue in B minor"
+    };
+
+    // Build full BWV list 0846..0893 with titles that include keys
     const PIECES = [];
     for (let n = 846; n <= 893; n++) {
       const num = String(n).padStart(4, "0");
-      const slug = `BWV_${num}`;
+      const bwv = `BWV_${num}`;
       const book = n <= 869 ? "Book I" : "Book II";
-      PIECES.push({ slug, title: `${book} — ${slug.replace("_", " ")}` });
+      const keyTitle = KEY_MAP[bwv] || "Prelude & Fugue";
+      PIECES.push({
+        slug: bwv,
+        // Full caption: e.g., "Book I — BWV 0846 — Prelude & Fugue in C major"
+        title: `${book} — ${bwv.replace("_", " ")} — ${keyTitle}`
+      });
     }
 
-    // Cheap existence check
+    // Cheap existence check (no audio bytes downloaded)
     async function fileExists(path) {
       try {
         const res = await fetch(path, { method: "HEAD", cache: "no-store" });
@@ -118,7 +182,7 @@
       chev.className = "chev";
       chev.textContent = "▸";
       const title = document.createElement("span");
-      title.textContent = `${piece.title} — Prelude & Fugue`;
+      title.textContent = piece.title;
       const badge = document.createElement("span");
       badge.className = "badge";
       badge.textContent = "0/7";
@@ -141,7 +205,6 @@
 
         let found = 0;
 
-        // Render lines lazily only when opened
         for (const t of TEMPERAMENTS) {
           const label = document.createElement("div");
           label.className = "tlabel";
@@ -165,7 +228,7 @@
               cell.innerHTML = "";
               const audio = document.createElement("audio");
               audio.controls = true;
-              audio.preload = "none";
+              audio.preload = "none"; // no bytes until play
               audio.src = path;
               cell.appendChild(audio);
 
@@ -180,7 +243,6 @@
             } else {
               cell.innerHTML = `<span class="dash">—</span>`;
             }
-            // update badge as checks finish
             badge.textContent = `${found}/${TEMPERAMENTS.length}`;
           })();
         }
