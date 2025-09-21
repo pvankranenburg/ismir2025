@@ -11,6 +11,14 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color:var(--fg); background:var(--bg); margin:0; padding:1.25rem; line-height:1.45;
     }
+    .topbar {
+      display:flex; justify-content:flex-end; margin-bottom:.5rem;
+    }
+    .repo-link {
+      display:inline-block; padding:.35rem .6rem; border:1px solid var(--border); border-radius:.6rem;
+      text-decoration:none; color:#173466; background:#eef4ff; font-weight:600;
+    }
+    .repo-link:hover { background:#e3ecff; }
     header { margin-bottom: 1rem; }
     h1 { margin:0 0 .25rem 0; font-size:1.35rem; }
     p.sub { margin:0; color:var(--muted); }
@@ -36,11 +44,10 @@
     }
 
     .content { padding:.15rem .1rem 0; }
-    /* Tighter, left-aligned grid: label fits its text; player hugs the caption */
     .templist{
       display:grid;
       grid-template-columns: max-content minmax(220px, 560px);
-      gap:.45rem .6rem;  /* smaller horizontal gap */
+      gap:.45rem .6rem;
       align-items:center;
     }
     .tlabel{ font-weight:600; color:#1d2840; }
@@ -57,6 +64,8 @@
 
     @media (prefers-color-scheme: dark){
       :root{ --fg:#e9eefc; --bg:#0b0f1a; --border:#1a2336; --muted:#9fb0d0; }
+      .repo-link { background:#102040; color:#bcd2ff; border-color:#1a2336; }
+      .repo-link:hover { background:#0e1b39; }
       details{ background:#0f1626; }
       details[open]{ background:#121a2b; }
       summary{ color:#cfe0ff; }
@@ -66,6 +75,10 @@
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <a class="repo-link" href="https://github.com/pvankranenburg/ismir2025" target="_blank" rel="noopener">GitHub Repository</a>
+  </div>
+
   <header>
     <h1>WTC Audio Examples <span class="badge">HTML5</span></h1>
     <p class="sub">Bach’s <em>Wohltemperirte Clavier</em> — one MP3 (Prelude &amp; Fugue) per BWV. Open a section to load players.</p>
@@ -81,19 +94,18 @@
     // ===== PATH ROOT (index.html at repo root) =====
     const ROOT = "wtc-examples";
 
-    // Temperaments (edit labels/order as you like)
+    // Temperaments (updated label for fifths-bounded)
     const TEMPERAMENTS = [
       { key: "wtc_equal",                      label: "Equal" },
       { key: "wtc_meantone",                   label: "1/4-comma Meantone" },
       { key: "wtc_kelletat1",                  label: "Kelletat 1" },
       { key: "wtc_ramis",                      label: "Ramis" },
       { key: "wtc_optimal",                    label: "Optimal (unbounded)" },
-      { key: "wtc_optimal_bounded_fifths",     label: "Optimal (bounded 696–705¢)" },
+      { key: "wtc_optimal_bounded_fifths",     label: "Optimal (fifths bounded 696–705¢)" },
       { key: "wtc_optimal_just_targets",       label: "Optimal (just targets)" }
     ];
 
-    // Keys from Wikipedia’s content list (Book I & II). BWV_0853 uses split keys.
-    // Source: en.wikipedia.org/wiki/The_Well-Tempered_Clavier (Content sections)  [see paper trail]
+    // Keys per BWV (Book I & II), including the split-key case for BWV 0853
     const KEY_MAP = {
       // Book I (BWV 846–869)
       "BWV_0846": "Prelude & Fugue in C major",
@@ -147,7 +159,7 @@
       "BWV_0893": "Prelude & Fugue in B minor"
     };
 
-    // Build full BWV list 0846..0893 with titles that include keys
+    // Build list BWV 0846..0893 with key titles
     const PIECES = [];
     for (let n = 846; n <= 893; n++) {
       const num = String(n).padStart(4, "0");
@@ -156,12 +168,11 @@
       const keyTitle = KEY_MAP[bwv] || "Prelude & Fugue";
       PIECES.push({
         slug: bwv,
-        // Full caption: e.g., "Book I — BWV 0846 — Prelude & Fugue in C major"
         title: `${book} — ${bwv.replace("_", " ")} — ${keyTitle}`
       });
     }
 
-    // Cheap existence check (no audio bytes downloaded)
+    // HEAD-only existence check (no audio bytes)
     async function fileExists(path) {
       try {
         const res = await fetch(path, { method: "HEAD", cache: "no-store" });
@@ -171,7 +182,6 @@
 
     const list = document.getElementById("list");
 
-    // Create one collapsible section per piece; lazy-load contents on open
     function createSection(piece) {
       const d = document.createElement("details");
       d.dataset.slug = piece.slug;
@@ -228,7 +238,7 @@
               cell.innerHTML = "";
               const audio = document.createElement("audio");
               audio.controls = true;
-              audio.preload = "none"; // no bytes until play
+              audio.preload = "none";
               audio.src = path;
               cell.appendChild(audio);
 
@@ -253,7 +263,6 @@
       return d;
     }
 
-    // Render all sections (collapsed)
     function renderList(filter = "") {
       list.innerHTML = "";
       const q = filter.trim().toLowerCase();
@@ -264,7 +273,6 @@
 
     renderList();
 
-    // Filter
     const search = document.getElementById("search");
     search.addEventListener("input", () => renderList(search.value));
   </script>
