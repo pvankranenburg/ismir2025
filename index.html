@@ -7,68 +7,77 @@
   <style>
     :root { --fg:#0b1220; --muted:#5a6b87; --bg:#fff; --border:#e6ecf5; --accent:#0f62fe; }
     * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-           color:var(--fg); background:var(--bg); margin:0; padding:1.25rem; line-height:1.45; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color:var(--fg); background:var(--bg); margin:0; padding:1.25rem; line-height:1.45;
+    }
     header { margin-bottom: 1rem; }
     h1 { margin:0 0 .25rem 0; font-size:1.35rem; }
     p.sub { margin:0; color:var(--muted); }
     .controls { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; margin:1rem 0; }
-    input[type="search"]{ padding:.55rem .7rem; border:1px solid var(--border); border-radius:.6rem; min-width:240px; }
-    .table-wrap{ overflow:auto; border:1px solid var(--border); border-radius:.8rem; }
-    table{ border-collapse:separate; border-spacing:0; width:100%; min-width:860px; }
-    thead th{ position:sticky; top:0; background:#fafbfe; z-index:1; font-weight:600; color:#1d2840;
-              border-bottom:1px solid var(--border); padding:.6rem .6rem; text-align:left; white-space:nowrap; }
-    tbody td, tbody th{ border-bottom:1px solid var(--border); padding:.55rem .6rem; vertical-align:middle; }
-    tbody tr:nth-child(even){ background:#fcfdff; }
-    tbody th{ font-weight:600; width:28ch; }
-    .cell{ display:flex; flex-direction:column; gap:.35rem; align-items:flex-start; justify-content:center; }
-    audio{ width:280px; max-width:100%; }
+    input[type="search"]{ padding:.55rem .7rem; border:1px solid var(--border); border-radius:.6rem; min-width:260px; }
+    .accordion { display:flex; flex-direction:column; gap:.5rem; }
+    details {
+      border:1px solid var(--border); border-radius:.75rem; background:#fafbfe;
+      padding:.2rem .6rem .6rem; transition:background .2s ease;
+    }
+    details[open] { background:#f4f7ff; }
+    summary {
+      cursor:pointer; list-style: none; display:flex; align-items:center; gap:.6rem;
+      padding:.6rem .2rem; font-weight:700; color:#1d2840;
+    }
+    summary::-webkit-details-marker { display:none; }
+    .chev { display:inline-block; transition: transform .2s ease; }
+    details[open] .chev { transform: rotate(90deg); }
+    .badge {
+      margin-left:auto; background:#eef4ff; color:#173466; border-radius:999px;
+      padding:.15rem .5rem; font-size:.75rem; font-weight:600;
+    }
+    .content { padding:.25rem .2rem .2rem .2rem; }
+    .templist{
+      display:grid;
+      grid-template-columns: 1fr minmax(220px, 520px);
+      gap:.55rem .8rem;
+      align-items:center;
+    }
+    .tlabel{ font-weight:600; color:#1d2840; }
+    .cell{ display:flex; flex-direction:column; gap:.3rem; align-items:flex-start; }
+    audio{ width:100%; max-width:520px; }
     .meta{ color:var(--muted); font-size:.85rem; }
     .dash{ color:#c0c7d6; }
-    .pill{ display:inline-block; padding:.15rem .5rem; border-radius:999px; background:#eef4ff; color:#173466; font-size:.75rem; margin-left:.35rem; }
-    .legend{ margin-top:.75rem; color:var(--muted); font-size:.9rem; }
-    .loading{ display:inline-block; width:.75rem; height:.75rem; border:2px solid #c9d5f1;
-              border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite;
-              vertical-align:-2px; margin-right:.35rem; }
+    .loading{
+      display:inline-block; width:.75rem; height:.75rem; border:2px solid #c9d5f1;
+      border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite;
+      vertical-align:-2px; margin-right:.35rem;
+    }
     @keyframes spin { to{ transform:rotate(360deg); } }
     @media (prefers-color-scheme: dark){
       :root{ --fg:#e9eefc; --bg:#0b0f1a; --border:#1a2336; --muted:#9fb0d0; }
-      thead th{ background:#0f1626; color:#cfe0ff; }
-      tbody tr:nth-child(even){ background:#0e1423; }
-      .pill{ background:#102040; color:#bcd2ff; }
+      details{ background:#0f1626; }
+      details[open]{ background:#121a2b; }
+      summary{ color:#cfe0ff; }
+      .badge{ background:#102040; color:#bcd2ff; }
       audio{ filter:brightness(0.95); }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>WTC Audio Examples <span class="pill">HTML5 Player</span></h1>
-    <p class="sub">Bach’s <em>Wohltemperirte Clavier</em> — Prelude &amp; Fugue combined in one MP3 per BWV. Rows are BWV_0846–BWV_0893 (48 works).</p>
+    <h1>WTC Audio Examples <span class="badge">HTML5</span></h1>
+    <p class="sub">Bach’s <em>Wohltemperirte Clavier</em> — one MP3 (Prelude &amp; Fugue) per BWV. Open a section to load players.</p>
   </header>
 
   <div class="controls">
     <input id="search" type="search" placeholder="Filter (e.g., 'Book I', 'BWV 0872')" />
   </div>
 
-  <div class="table-wrap">
-    <table id="grid" aria-describedby="legend">
-      <thead id="thead"></thead>
-      <tbody id="tbody" aria-live="polite" aria-busy="true"></tbody>
-    </table>
-  </div>
-
-  <p id="legend" class="legend">
-    <span class="loading"></span> Each cell checks for its file and shows a player if found. “—” means no file present in that temperament folder.
-  </p>
+  <div id="list" class="accordion" aria-live="polite"></div>
 
   <script>
-    // =========================
-    // IMPORTANT: paths root
-    // =========================
-    // index.html sits at repo ROOT; MP3s live under "wtc-examples/...".
+    // ===== PATH ROOT (index.html at repo root) =====
     const ROOT = "wtc-examples";
 
-    // Temperament folders (adjust as needed)
+    // Temperaments (edit labels or order as you like)
     const TEMPERAMENTS = [
       { key: "wtc_equal",                      label: "Equal" },
       { key: "wtc_meantone",                   label: "1/4-comma Meantone" },
@@ -79,7 +88,7 @@
       { key: "wtc_optimal_just_targets",       label: "Optimal (just targets)" }
     ];
 
-    // Build full BWV list: 0846..0893 (Book I: 846–869; Book II: 870–893)
+    // Build BWV list: 0846..0893 (Book I: 846–869; Book II: 870–893)
     const PIECES = [];
     for (let n = 846; n <= 893; n++) {
       const num = String(n).padStart(4, "0");
@@ -88,94 +97,114 @@
       PIECES.push({ slug, title: `${book} — ${slug.replace("_", " ")}` });
     }
 
-    // Render head
-    const thead = document.getElementById("thead");
-    const headRow = document.createElement("tr");
-    headRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Composition (BWV)" }));
-    TEMPERAMENTS.forEach(t => {
-      const th = document.createElement("th");
-      th.textContent = t.label;
-      headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-
-    // Check existence via HEAD (cheap) and insert player if present
+    // Cheap existence check
     async function fileExists(path) {
       try {
         const res = await fetch(path, { method: "HEAD", cache: "no-store" });
         return res.ok;
-      } catch {
-        return false;
-      }
+      } catch { return false; }
     }
 
-    // Render body
-    const tbody = document.getElementById("tbody");
+    const list = document.getElementById("list");
 
-    function renderRows(filterText = "") {
-      tbody.innerHTML = "";
-      const q = filterText.trim().toLowerCase();
-      const rows = PIECES.filter(p =>
-        !q || p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q)
-      );
+    // Create one collapsible section per piece; lazy-load contents on open
+    function createSection(piece) {
+      const d = document.createElement("details");
+      d.dataset.slug = piece.slug;
+      d.dataset.loaded = "false";
 
-      rows.forEach(p => {
-        const tr = document.createElement("tr");
+      const s = document.createElement("summary");
+      const chev = document.createElement("span");
+      chev.className = "chev";
+      chev.textContent = "▸";
+      const title = document.createElement("span");
+      title.textContent = `${piece.title} — Prelude & Fugue`;
+      const badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = "0/7";
 
-        const th = document.createElement("th");
-        th.scope = "row";
-        th.textContent = p.title + " — Prelude & Fugue";
-        tr.appendChild(th);
+      s.appendChild(chev);
+      s.appendChild(title);
+      s.appendChild(badge);
+      d.appendChild(s);
 
-        TEMPERAMENTS.forEach(t => {
-          const td = document.createElement("td");
-          const wrap = document.createElement("div");
-          wrap.className = "cell";
-          td.appendChild(wrap);
-          tr.appendChild(td);
+      const content = document.createElement("div");
+      content.className = "content";
+      d.appendChild(content);
 
-          const path = `${ROOT}/${t.key}/${p.slug}.mp3`;
+      d.addEventListener("toggle", async () => {
+        if (!d.open || d.dataset.loaded === "true") return;
 
-          // placeholder
+        const grid = document.createElement("div");
+        grid.className = "templist";
+        content.appendChild(grid);
+
+        let found = 0;
+
+        // Render lines lazily only when opened
+        for (const t of TEMPERAMENTS) {
+          const label = document.createElement("div");
+          label.className = "tlabel";
+          label.textContent = t.label;
+
+          const cell = document.createElement("div");
+          cell.className = "cell";
+
           const wait = document.createElement("span");
           wait.className = "meta";
           wait.innerHTML = `<span class="loading"></span>Checking…`;
-          wrap.appendChild(wait);
+          cell.appendChild(wait);
 
+          grid.appendChild(label);
+          grid.appendChild(cell);
+
+          const path = `${ROOT}/${t.key}/${piece.slug}.mp3`;
           (async () => {
             if (await fileExists(path)) {
-              wrap.innerHTML = "";
+              found++;
+              cell.innerHTML = "";
               const audio = document.createElement("audio");
               audio.controls = true;
               audio.preload = "none";
               audio.src = path;
-              wrap.appendChild(audio);
+              cell.appendChild(audio);
 
               const meta = document.createElement("div");
               meta.className = "meta";
               const a = document.createElement("a");
               a.href = path;
-              a.download = `${p.slug}__${t.key}.mp3`;
+              a.download = `${piece.slug}__${t.key}.mp3`;
               a.textContent = "Download";
               meta.appendChild(a);
-              wrap.appendChild(meta);
+              cell.appendChild(meta);
             } else {
-              wrap.innerHTML = `<span class="dash">—</span>`;
+              cell.innerHTML = `<span class="dash">—</span>`;
             }
+            // update badge as checks finish
+            badge.textContent = `${found}/${TEMPERAMENTS.length}`;
           })();
-        });
+        }
 
-        tbody.appendChild(tr);
+        d.dataset.loaded = "true";
       });
 
-      document.getElementById("tbody").setAttribute("aria-busy", "false");
+      return d;
     }
 
-    renderRows();
+    // Render all sections (collapsed)
+    function renderList(filter = "") {
+      list.innerHTML = "";
+      const q = filter.trim().toLowerCase();
+      PIECES
+        .filter(p => !q || p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q))
+        .forEach(p => list.appendChild(createSection(p)));
+    }
 
-    // Search filter
+    renderList();
+
+    // Filter
     const search = document.getElementById("search");
-    search.addEventListener("input", () => renderRows(search.value));
+    search.addEventListener("input", () => renderList(search.value));
   </script>
 </body>
 </html>
