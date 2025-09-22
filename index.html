@@ -11,9 +11,7 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color:var(--fg); background:var(--bg); margin:0; padding:1.25rem; line-height:1.45;
     }
-    .topbar {
-      display:flex; justify-content:flex-end; margin-bottom:.5rem;
-    }
+    .topbar { display:flex; justify-content:flex-end; margin-bottom:.5rem; }
     .repo-link {
       display:inline-block; padding:.35rem .6rem; border:1px solid var(--border); border-radius:.6rem;
       text-decoration:none; color:#173466; background:#eef4ff; font-weight:600;
@@ -24,8 +22,8 @@
     p.sub { margin:0; color:var(--muted); }
     .controls { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; margin:1rem 0; }
     input[type="search"]{ padding:.55rem .7rem; border:1px solid var(--border); border-radius:.6rem; min-width:260px; }
-    .accordion { display:flex; flex-direction:column; gap:.5rem; }
 
+    .accordion { display:flex; flex-direction:column; gap:.5rem; margin-top:.75rem; }
     details {
       border:1px solid var(--border); border-radius:.75rem; background:#fafbfe;
       padding:.15rem .5rem .55rem; transition:background .2s ease;
@@ -42,8 +40,9 @@
       margin-left:auto; background:#eef4ff; color:#173466; border-radius:999px;
       padding:.15rem .5rem; font-size:.75rem; font-weight:600;
     }
-
     .content { padding:.15rem .1rem 0; }
+
+    /* Label + player grid; used for demos and WTC entries */
     .templist{
       display:grid;
       grid-template-columns: max-content minmax(220px, 560px);
@@ -88,13 +87,30 @@
     <input id="search" type="search" placeholder="Filter (e.g., 'Book I', 'BWV 0872', 'B minor')" />
   </div>
 
-  <div id="list" class="accordion" aria-live="polite"></div>
+  <!-- Presentation demos section (independent of filter) -->
+  <div class="accordion" aria-live="polite" aria-label="Presentation Demos">
+    <details id="demos" data-loaded="false">
+      <summary>
+        <span class="chev">▸</span>
+        <span>Presentation Demos (ISMIR 2025)</span>
+        <span class="badge">0/3</span>
+      </summary>
+      <div class="content">
+        <div class="templist" id="demos-list">
+          <!-- Filled on open -->
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- WTC list (filterable) -->
+  <div id="list" class="accordion" aria-live="polite" aria-label="WTC Works"></div>
 
   <script>
     // ===== PATH ROOT (index.html at repo root) =====
     const ROOT = "wtc-examples";
 
-    // Temperaments (updated label for fifths-bounded)
+    // Temperaments (with corrected bounded label)
     const TEMPERAMENTS = [
       { key: "wtc_equal",                      label: "Equal" },
       { key: "wtc_meantone",                   label: "1/4-comma Meantone" },
@@ -105,7 +121,23 @@
       { key: "wtc_optimal_just_targets",       label: "Optimal (just targets)" }
     ];
 
-    // Keys per BWV (Book I & II), including the split-key case for BWV 0853
+    // ===== Presentation demos =====
+    const DEMOS = [
+      {
+        path: "presentation_at_ismir/BWV0846-cmajor.mp3",
+        label: "BWV 846 rendered with the predicted optimal temperament for C major"
+      },
+      {
+        path: "presentation_at_ismir/BWV0846-es-major.mp3",
+        label: "BWV 846 rendered with the predicted optimal temperament for E♭ major"
+      },
+      {
+        path: "presentation_at_ismir/alternating_chords_equal_pure.wav",
+        label: "Major chord, alternating between equal temperament and just intonation"
+      }
+    ];
+
+    // ===== Keys per BWV (Book I & II), incl. split for BWV 0853 =====
     const KEY_MAP = {
       // Book I (BWV 846–869)
       "BWV_0846": "Prelude & Fugue in C major",
@@ -159,7 +191,68 @@
       "BWV_0893": "Prelude & Fugue in B minor"
     };
 
-    // Build list BWV 0846..0893 with key titles
+    // ===== Utility: HEAD-only existence check =====
+    async function fileExists(path) {
+      try {
+        const res = await fetch(path, { method: "HEAD", cache: "no-store" });
+        return res.ok;
+      } catch { return false; }
+    }
+
+    // ===== Demos: lazy fill on open =====
+    const demosDetails = document.getElementById("demos");
+    const demosList = document.getElementById("demos-list");
+    demosDetails.addEventListener("toggle", async () => {
+      if (!demosDetails.open || demosDetails.dataset.loaded === "true") return;
+
+      let found = 0;
+      const badge = demosDetails.querySelector(".badge");
+
+      DEMOS.forEach(({ path, label }) => {
+        const lab = document.createElement("div");
+        lab.className = "tlabel";
+        lab.textContent = label;
+
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const wait = document.createElement("span");
+        wait.className = "meta";
+        wait.innerHTML = `<span class="loading"></span>Checking…`;
+        cell.appendChild(wait);
+
+        demosList.appendChild(lab);
+        demosList.appendChild(cell);
+
+        (async () => {
+          // Paths are relative to repo root; serve directly
+          if (await fileExists(path)) {
+            found++;
+            cell.innerHTML = "";
+            const audio = document.createElement("audio");
+            audio.controls = true;
+            audio.preload = "none";
+            audio.src = path;
+            cell.appendChild(audio);
+
+            const meta = document.createElement("div");
+            meta.className = "meta";
+            const a = document.createElement("a");
+            a.href = path;
+            a.download = path.split("/").pop();
+            a.textContent = "Download";
+            meta.appendChild(a);
+            cell.appendChild(meta);
+          } else {
+            cell.innerHTML = `<span class="dash">—</span>`;
+          }
+          badge.textContent = `${found}/${DEMOS.length}`;
+        })();
+      });
+
+      demosDetails.dataset.loaded = "true";
+    });
+
+    // ===== Build WTC list (BWV 0846..0893) with key titles =====
     const PIECES = [];
     for (let n = 846; n <= 893; n++) {
       const num = String(n).padStart(4, "0");
@@ -170,14 +263,6 @@
         slug: bwv,
         title: `${book} — ${bwv.replace("_", " ")} — ${keyTitle}`
       });
-    }
-
-    // HEAD-only existence check (no audio bytes)
-    async function fileExists(path) {
-      try {
-        const res = await fetch(path, { method: "HEAD", cache: "no-store" });
-        return res.ok;
-      } catch { return false; }
     }
 
     const list = document.getElementById("list");
@@ -238,7 +323,7 @@
               cell.innerHTML = "";
               const audio = document.createElement("audio");
               audio.controls = true;
-              audio.preload = "none";
+              audio.preload = "none"; // no bytes until play
               audio.src = path;
               cell.appendChild(audio);
 
