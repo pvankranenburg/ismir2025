@@ -123,18 +123,12 @@
 
     // ===== Presentation demos =====
     const DEMOS = [
-      {
-        path: "presentation_at_ismir/BWV0846-cmajor.mp3",
-        label: "BWV 846 rendered with the predicted optimal temperament for C major"
-      },
-      {
-        path: "presentation_at_ismir/BWV0846-es-major.mp3",
-        label: "BWV 846 rendered with the predicted optimal temperament for E♭ major"
-      },
-      {
-        path: "presentation_at_ismir/alternating_chords_equal_pure.wav",
-        label: "Major chord, alternating between equal temperament and just intonation"
-      }
+      { path: "presentation_at_ismir/BWV0846-cmajor.mp3",
+        label: "BWV 846 rendered with the predicted optimal temperament for C major" },
+      { path: "presentation_at_ismir/BWV0846-es-major.mp3",
+        label: "BWV 846 rendered with the predicted optimal temperament for E♭ major" },
+      { path: "presentation_at_ismir/alternating_chords_equal_pure.wav",
+        label: "Major chord, alternating between equal temperament and just intonation" }
     ];
 
     // ===== Keys per BWV (Book I & II), incl. split for BWV 0853 =====
@@ -224,21 +218,23 @@
         demosList.appendChild(cell);
 
         (async () => {
-          // Paths are relative to repo root; serve directly
-          if (await fileExists(path)) {
+          // Prefix with ROOT so we serve from: wtc-examples/<your path>
+          const full = `${ROOT}/${path}`;
+
+          if (await fileExists(full)) {
             found++;
             cell.innerHTML = "";
             const audio = document.createElement("audio");
             audio.controls = true;
             audio.preload = "none";
-            audio.src = path;
+            audio.src = full;
             cell.appendChild(audio);
 
             const meta = document.createElement("div");
             meta.className = "meta";
             const a = document.createElement("a");
-            a.href = path;
-            a.download = path.split("/").pop();
+            a.href = full;
+            a.download = full.split("/").pop();
             a.textContent = "Download";
             meta.appendChild(a);
             cell.appendChild(meta);
@@ -248,6 +244,7 @@
           badge.textContent = `${found}/${DEMOS.length}`;
         })();
       });
+
 
       demosDetails.dataset.loaded = "true";
     });
