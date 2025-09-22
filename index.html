@@ -71,7 +71,37 @@
       .badge{ background:#102040; color:#bcd2ff; }
       audio{ filter:brightness(0.95); }
     }
+
+    /* --- DARK THEME: raise contrast --- */
+    @media (prefers-color-scheme: dark){
+      :root{
+        --fg: #eaf2ff;          /* main text */
+        --bg: #0a0f1c;          /* page bg */
+        --border: #1e2a44;      /* borders */
+        --muted: #afc3e8;       /* secondary text */
+      }
+      body{ background: var(--bg); color: var(--fg); }
+      summary{ color: var(--fg); }
+      .tlabel{ color: var(--fg); }           /* temperament labels */
+      .sub, .meta{ color: var(--muted); }    /* description + download text */
+      a{ color: #9dc1ff; }                   /* visible links on dark */
+      details{ background: #0f172a; border-color: var(--border); }
+      details[open]{ background: #121b33; }
+    }
+
+    /* --- MOBILE: stack label + player, keep them left-aligned --- */
+    @media (max-width: 640px){
+      .templist{
+        grid-template-columns: 1fr !important;  /* one column: label on its own row, then player */
+        gap: .3rem .6rem;
+      }
+      .tlabel{ margin-top: .2rem; }
+      audio{ width: 100%; max-width: 100%; }    /* full-width control, no overflow */
+      .content{ padding-right: .1rem; }         /* reduce right padding to avoid clipping */
+    }
+
   </style>
+
 </head>
 <body>
   <div class="topbar">
