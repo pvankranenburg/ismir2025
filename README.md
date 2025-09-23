@@ -26,7 +26,7 @@ This project provides a data-driven approach to estimate optimal keyboard temper
   
   To listen to these audio files, please visit [https://pvankranenburg.github.io/ismir2025/](https://pvankranenburg.github.io/ismir2025/).
 - **results/**: plots and json output from runs.
-- **temperament_deviations.html**: As a bonus, a web application to explore temperaments. It provides a visualization of the deviations from pure intervals, and sonifications of intervals and chords. It also allows to adapt temperaments.
+- **temperament_deviations.html**: As a bonus, a web application to explore temperaments. It provides a visualization of the deviations from pure intervals, and sonifications of intervals and chords. It also allows to adapt temperaments. Visit at: [https://pvankranenburg.github.io/ismir2025/temperament_deviations.html](https://pvankranenburg.github.io/ismir2025/temperament_deviations.html).
 
 
 ## Citation
